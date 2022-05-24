@@ -141,6 +141,7 @@ class Deployment:
             i for i in self.targets if task.targets is None or i.name in task.targets
         ]
         for target in targets:
+            target.cwd = "."
             target.cd(task.directory)
         target_names = " ".join([i.name for i in targets])
         print(f"{task.function.__name__}: {target_names}", flush=True)

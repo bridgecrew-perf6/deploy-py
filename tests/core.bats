@@ -40,11 +40,11 @@ teardown() {
 	rm -rf "$BATS_TEST_TMPDIR"
 }
 
-@test "simple echo" {
+@test "single command" {
 run_script << EOF
 @deploy.task()
 def task(target):
-		target.run(["echo", "Hello world"])
+		target.run(["exit", "0"])
 EOF
 }
 

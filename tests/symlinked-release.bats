@@ -42,7 +42,7 @@ cat << EOF
 @deploy.task()
 def t(target):
 		release.detect_releases(target)
-		release.copy(target, ["${BATS_TEST_FILENAME}"])
+		release.copy(target, ["tests/symlinked-release.bats"])
 		release.link_shared(target)
 		release.link(target)
 		release.remove_old(target)
@@ -61,10 +61,12 @@ setup() {
 		nc -z -w 1 localhost 22 || continue
 		break
 	done
+	pushd /test >/dev/null
 }
 
 teardown() {
 	rm -rf "$BATS_TEST_TMPDIR"
+	popd >/dev/null
 }
 
 @test "detect releases in fresh environment" {
@@ -78,14 +80,14 @@ EOF
 @test "link shared paths" {
 	run_script "1" "$SIMPLE_DEPLOYMENT"
 	[ -e "${BATS_TEST_TMPDIR}/releases/1" ]
-	[ -e "${BATS_TEST_TMPDIR}/releases/1/${BATS_TEST_FILENAME}" ]
+	[ -e "${BATS_TEST_TMPDIR}/releases/1/tests/symlinked-release.bats" ]
 	mkdir -p "${BATS_TEST_TMPDIR}/shared/data"
 	declare text="sample-text"
 	echo "$text" > "${BATS_TEST_TMPDIR}/shared/data/test.log"
 	run -0 cat "${BATS_TEST_TMPDIR}/releases/1/test.log"
 	[ "$text" = "$output" ]
 	[ -e "${BATS_TEST_TMPDIR}/releases/1" ]
-	[ -e "${BATS_TEST_TMPDIR}/releases/1/${BATS_TEST_FILENAME}" ]
+	[ -e "${BATS_TEST_TMPDIR}/releases/1/tests/symlinked-release.bats" ]
 }
 
 @test "manage releases" {
@@ -102,10 +104,8 @@ EOF
 }
 
 @test "deployment from Git repository" {
-	pushd /test >/dev/null
-	run -1 ls -alrth
 	run_script "1" "$SIMPLE_DEPLOYMENT"
-	popd >/dev/null
 	run -0 stat "${BATS_TEST_TMPDIR}/current/tests"
-	run -0 stat "${BATS_TEST_TMPDIR}/current/${BATS_TEST_FILENAME}"
+	run -0 stat "${BATS_TEST_TMPDIR}/current/tests/symlinked-release.bats"
+	run -0 stat "${BATS_TEST_TMPDIR}/current/deploy.py"
 }
